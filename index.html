@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>FakeStore Api</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+          <script type="text/javascript">
+                
+             function LoadCategory()
+             {
+              fetch("https://fakestoreapi.com/products/categories")
+              .then(function(response){
+                return response.json();
+              })
+              .then(function(data){
+                 data.unshift("all");
+                 data.map(function(categorie){
+                    var option = document.createElement("option");
+                    option.text=categorie.toUpperCase();
+                    option.value=categorie;
+                    document.getElementById("categorySelect").appendChild(option);
+                 })   
+              })
+             }
+
+             function LoadProduct(url)
+             {
+                document.querySelector("main").innerHTML="";
+              fetch(url)
+              .then(function(response){
+                    return response.json();
+              })
+              .then(function(products){
+               products.map(function(product){
+                   RenderProduct(product);
+              })
+             }) 
+            }
+            function ratingChange()
+            {
+              document.querySelector("main").innerHTML="";
+              var txtckeck = document.getElementById("txtcheck");
+              if(txtckeck.checked)
+              {
+                fetch("https://fakestoreapi.com/products")
+                .then(function(response){
+                  return response.json();
+                })
+                .then(function(item){
+                  var filterproduct= item.filter(function(product){
+                    return product.rating.rate > 4;
+                  });
+                  filterproduct.map(function(product){
+                    RenderProduct(product);
+                  })
+                })
+              }
+              else{
+                 LoadProduct("https://fakestoreapi.com/products");
+              }
+            }
+            function ratingChange2()
+            {
+              document.querySelector("main").innerHTML="";
+              var txtcheck2 = document.getElementById("txtcheck2");
+              if(txtcheck2.checked)
+            {
+              fetch("https://fakestoreapi.com/products")
+              .then(function(response){
+                return response.json();
+              })
+              .then(function(item){
+                var filter_data = item.filter(function(data){
+                  return data.rating.rate < 3;
+                });
+                filter_data.map(function(item){
+                  RenderProduct(item);
+                })
+              })
+            }
+            else{
+              LoadProduct("https://fakestoreapi.com/products");
+            } 
+            }
+            function ratingChange3()
+            {
+              document.querySelector("main").innerHTML="";
+              var txtcheck3 =document.getElementById("txtcheck3");
+              if(txtcheck3.checked)
+            {
+              fetch("https://fakestoreapi.com/products")
+              .then(function(response){
+                return response.json();
+              })
+              .then(function(product){
+                var filter_data= product.filter(function(data){
+                  return data.rating.rate >2;
+                });
+                filter_data.map(function(item){
+                RenderProduct(item);
+              })
+              })
+            
+            }
+            else{
+              LoadProduct("https://fakestoreapi.com/products");
+            }
+          
+          }
+              function RenderProduct(product)
+              {
+                var div = document.createElement("div");
+                    div.className="card m-2 p-2";
+                    div.style.width="200px";
+                    div.innerHTML=`
+                    <img src=${product.image} class="card-img-top" height="120">
+                    <div class="card-header overflow-auto" style="height:100px">
+                      ${product.title}
+                     </div>
+                     <div class="card-body">
+                      <dl>
+                        <dt>Price:</dt>
+                        <dd>${product.price} </dd>
+                        <dt>Ratings:</dt>
+                        <dd>${product.rating.rate} <span class="bi bi-star-fill text-success"></span> [${product.rating.count}] </dd>
+                      </dl>
+                     </div>
+                     <div class="card-footer">
+                          <button id=${product.id} class="btn btn-danger bi bi-cart4 w-100 text-white" onclick="addtocart(this.id)">Add To Cart</button>    
+                     </div>
+                    `;
+                    document.querySelector("main").appendChild(div);
+              }
+              var cartitems=[];
+              function addtocart(id)
+              {
+                 fetch(`https://fakestoreapi.com/products/${id}`)
+                 .then(function(response){
+                  return response.json();
+                 }) 
+                 .then(function(item){
+                  cartitems.push(item);
+                  alert(`${item.title} Added To Cart`);
+                  document.getElementById("cartcount").innerHTML=cartitems.length;
+                  })
+              }
+              
+             function cartclick()
+             {
+              var count=0;
+              document.querySelector("tbody").innerHTML="";
+              cartitems.map(function(item){
+              var tr = document.createElement("tr");
+              var td_title = document.createElement("td");
+              var td_preview = document.createElement("td");
+              var td_price = document.createElement("td");
+               
+              tr.appendChild(td_title);
+              tr.appendChild(td_preview);
+              tr.appendChild(td_price);
+              
+              td_title.innerHTML=item.title;
+              td_preview.innerHTML=`<img src=${item.image} width="50" height="50">`;
+              td_price.innerHTML=item.price;
+              document.querySelector("tbody").appendChild(tr);
+              })
+              cartitems.map(function(item){
+                count += item.price;
+              })
+              document.getElementById("totalprice").innerHTML=`Total: ${count.toLocaleString('en-us',{style:'currency',currency:'usd'})}`;
+             }
+
+           function categoryChange()
+           {
+           var categoryname= document.getElementById("categorySelect").value;
+           if(categoryname==="all")
+           {
+             LoadProduct("https://fakestoreapi.com/products");       
+           }
+           else
+           {
+            LoadProduct(`https://fakestoreapi.com/products/category/${categoryname}`);
+           }
+           }
+           function searchProduct()
+           {
+             var product_name = document.getElementById("lblsearch").value;
+             fetch("https://fakestoreapi.com/products/categories")
+             .then(function(item){
+               return item.json();
+             })
+             .then(function(data){
+                 if(data.indexOf(product_name)===-1)
+               {
+                alert(`${product_name} product name does not exist!`);
+               } 
+               else
+               {
+                LoadProduct(`https://fakestoreapi.com/products/category/${product_name.toLowerCase()}`);    
+               }  
+              
+             })
+           }
+             function bodyload()
+             {
+                  LoadCategory(); 
+                  LoadProduct("https://fakestoreapi.com/products"); 
+             }
+          </script>
+</head>
+<body class="container-fluied" onload="bodyload()">
+      <header class="bg-dark text-white d-flex justify-content-around p-2 boorder=1">
+         <div class="fs-5 fw-bold">FakeStore API</div>
+         <div>
+          <nav class="nav-link p-3">
+            <a href="javascript:LoadProduct('https://fakestoreapi.com/products')" class="link-light fs-5 text-decoration-none">Home</a>
+            <a href="javascript:LoadProduct('https://fakestoreapi.com/products/category/electronics')" class="link-primary fs-5  ms-2 text-decoration-none">Electronics</a>
+            <a href="javascript:LoadProduct('https://fakestoreapi.com/products/category/jewelery')" class="link-light fs-5  ms-2 text-decoration-none">Jewelery</a>
+            <a href="javascript:LoadProduct('https://fakestoreapi.com/products/category/men'sclothing')" class="link-primary fs-5 ms-2 text-decoration-none">Men's Clothing</a>
+          </nav>
+         </div>
+        <div>
+          <div class="input-group">
+                    <input type="text" placeholder="search products" class=" form-control" id="lblsearch">
+                    <button class="btn btn-primary rounded fs-5  bi bi-search" onclick="searchProduct()"> Search</button>
+           </div> 
+        </div>
+        <div>
+          <span class="bi bi-person ms-2"></span>
+          <span class="bi bi-heart-fill ms-1"></span>
+          <button class="ms-2 btn btn-warning bi bi-cart4 position-reative" data-bs-toggle="modal" data-bs-target="#cart" onclick="cartclick()"><span class="badge bg-danger rounded rounded-circle position-absolute" id="cartcount"></span></button>
+        </div>
+      </header> 
+      <section class="row mt-3 ms-1">
+          <nav class="col-2">
+           <label for="categorySelect" class="form-label fw-bold">Category select</label>
+           <div>
+                    <select class="form-select" id="categorySelect" onchange="categoryChange()"></select>
+           </div>
+           <div class="my-3">
+            <label class="fs-5 text-primary fw-bold">Filter</label>
+            <ul class="list-unstyled">
+             <label class="fw-bold">Customer Ratings</label>
+             <li></span> <input type="checkbox" id="txtcheck" class="form-check-input" onclick="ratingChange()"> <span class="bi bi-star-fill text-success"></span> above 4 ratings</li>
+             <li></span><input type="checkbox" id="txtcheck2" class="form-check-input" onclick="ratingChange2()"> <span class="bi bi-star-fill text-warning"></span> below 3 ratings</li>
+             <li></span><input type="checkbox" id="txtcheck3" class="form-check-input" onclick="ratingChange3()"> <span class="bi bi-star-fill text-danger"></span> above 2 ratings</li>
+            </ul>
+         </div>
+         <div class="my-3">
+          <div class="text-danger fw-bold fs-5" style="text-decoration: underline;"> Filter By:</div>
+          <span class="fw-bold my-2" style="cursor: pointer; text-decoration: dotted;">Low to High</span><br>
+          <span class="fw-bold" style="cursor: pointer;">High to Low</span>
+         </div>
+          </nav>
+          
+          <main class="col-10 d-flex flex-wrap overflow-auto" style="height: 500px;">
+
+           </main>
+      </section>
+      
+      <div class="modal fade" id="cart">
+        <div class="modal-dialog">
+          <div class="modal-content">
+             <div class="modal-header">
+               <div class="text-danger fs-5 fw-bold text-center">Item Details</div>
+             </div>
+             <div class="modal-body">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Title:</th>
+                      <th>Preview:</th>
+                      <th>Price:</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+
+                  </tbody>
+                  <tfoot>
+                   <tr class="my-2">
+                    <td id="totalprice" class="text-success fw-bold fs-5"></td>
+                   </tr>
+                  </tfoot>
+                </table>
+             </div>
+             <div class="modal-footer">
+              <div>
+                <button class="btn btn-primary fw-bold" data-bs-dismiss="modal"> OK</button>
+              </div>
+             </div>
+          </div>
+        </div>
+      </div>   
+</body>
+</html>
